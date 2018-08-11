@@ -1,23 +1,16 @@
 __version__ = "18.08.11"
 
-import scipy as sp
-from scipy.optimize import curve_fit as _curve_fit
+from custom_utils.science.imports import *
+
 from scipy.interpolate import UnivariateSpline as _UnivariateSpline
-from scipy import array as arr
-
-from uncertainties import ufloat as uf
-from uncertainties import umath
-from uncertainties import unumpy
-
-import matplotlib as mpl
-import matplotlib.pyplot as plt
-
-import pandas as pd
+from scipy.optimize import curve_fit as _curve_fit
+import warnings
 
 
 def use_mpl_latex_style():
-
-    plt.rcParams["figure.figsize"] = (4 * 1.5, 2.5 * 1.5)
+    """ Changes rcParams to use latex in plots, also changes size to one good for protocols. """
+    # 6 is the widest possible for latex protokol class, 3.75 is arbitrary
+    plt.rcParams["figure.figsize"] = (6, 3.75)
     plt.rcParams["figure.dpi"] = 100
     plt.rcParams["text.usetex"] = True
     plt.rcParams['text.latex.unicode'] = True
@@ -29,11 +22,13 @@ def use_mpl_latex_style():
 
 
 def use_mpl_default_style():
-
+    """ Changes rcParams to default. """
     mpl.rcParams.update(mpl.rcParamsDefault)
 
 
 def dataframe_from_csv(csv, index_col=None, **kwargs):
+    """ Creates Pandas dataframe from comma separated values file, allows # comments and 
+    blank lines. """
     return pd.read_csv(csv, sep=r"\s*,\s*",
                        engine="python",
                        skip_blank_lines=True,
@@ -42,8 +37,22 @@ def dataframe_from_csv(csv, index_col=None, **kwargs):
                        ** kwargs)
 
 
-def mean_and_error(values):
+def repeated_measurement_mean_and_error(values):
+    """ 
+    Calculates the mean and mean error of multiple measurements of one quantity.
 
+    Parameters
+    ----------
+    values : sequence
+        multiple values of one quantity from repeated measurement
+
+    Returns
+    -------
+    mean : float
+        mean of the values
+    mean_error : float
+        error of the mean, eg. std (ddof=1) of values divided by sqrt of number of values
+    """
     array = sp.array(values)
     mean = array.mean()
     single_value_error = array.std(ddof=1)
@@ -87,23 +96,30 @@ def f_exp_simple(x, a, b):
     return a * sp.exp(b * x)
 
 
+def f_gaussian(x, mu, sigma):
+    """
+    Gaussian curve. Intended for ls regression.
+    """
+    return sp.exp(-(x - mu)**2 / (2 * sigma**2)) / (sp.sqrt(2 * sp.pi) * sigma)
+
+
 class FitCurve:
     """
     Class representing function fitted to some data. Objects are callable.
     Arguments are the same as for scipy.optimize.curve_fit.
 
     Parameters
-    ---------
-    f : callable
+    ----------
+    f: callable
         Function to fit parameters to.
         Has to have format f(x, param1, param2, ...)
-    xdata : M-length sequence
+    xdata: M-length sequence
         X values of data points.
-    ydata : M-length sequence
+    ydata: M-length sequence
         Y values of data points.
-    p0 : None, scalar or N-length sequence
+    p0: None, scalar or N-length sequence
         Initial guess for the parameters.
-    sigma : None or M-length sequence
+    sigma: None or M-length sequence
         Determines the uncertainty of ydata.
     """
 
@@ -130,14 +146,14 @@ class FitCurve:
 
         Parameters
         ----------
-        start : float, optional
+        start: float, optional
             The lowest x value. If none, lowest of original x data is used.
-        end : float, optional
+        end: float, optional
             The highest x value. If none, highest of original x data is used.
-        resolution : int
-            Number of points used in between start and end (inclusive).
-        overrun : float, (float, float)
-            fraction of x interval to add before start and after end. 
+        resolution: int
+            Number of points used in between start and end(inclusive).
+        overrun: float, (float, float)
+            fraction of x interval to add before start and after end.
             If tuple, the values are used for start and end separately.
         """
         if start is None:
@@ -163,15 +179,15 @@ class FitCurve:
 class Spline(_UnivariateSpline):
     """
     Thin wrapper around the scipy's UnivariateSpline. Original data is saved in xdata, ydata.
-    Curve function was added.
+    Curve function was added. Objects are callable.
     If passed x array is not strictly increasing, raises a warning and monotonizes
     the data automaticaly.
 
     Parameters
     ----------
-    x : Sequence like
+    x: Sequence like
         x data
-    y : Sequence like
+    y: Sequence like
         y data
     and other params of UnivariateSpline.
     """
@@ -200,13 +216,13 @@ class Spline(_UnivariateSpline):
 
         Parameters
         ----------
-        start : float, optional
+        start: float, optional
             The lowest x value. If none, lowest of original x data is used.
-        end : float, optional
+        end: float, optional
             The highest x value. If none, highest of original x data is used.
-        resolution : int
-            Number of points used in between start and end (inclusive).
-        overrun : float, (float, float)
+        resolution: int
+            Number of points used in between start and end(inclusive).
+        overrun: float, (float, float)
             fraction of x interval to add before start and after end. If tuple,
             the values are used for start and end separately.
         """
@@ -236,16 +252,16 @@ class Spline(_UnivariateSpline):
 
         Parameters:
         -----------
-        xdata : sequence
+        xdata: sequence
             X points
-        ydata : sequence
+        ydata: sequence
             Y points
 
         Returns:
         --------
-        new_x : numpy.ndarray
+        new_x: numpy.ndarray
             monotonized X points
-        new_y : numpy.ndarray
+        new_y: numpy.ndarray
             monotonized Y points
         """
         highest = xdata[0] - 1
