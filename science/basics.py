@@ -1,10 +1,12 @@
-__version__ = "18.08.11"
-
 from custom_utils.science.imports import *
 
 from scipy.interpolate import UnivariateSpline as _UnivariateSpline
 from scipy.optimize import curve_fit as _curve_fit
 import warnings
+
+from custom_utils.science._df_to_table import df_to_booktabs_table
+
+__version__ = "1.0"
 
 
 def use_mpl_latex_style():
@@ -26,10 +28,17 @@ def use_mpl_default_style():
     mpl.rcParams.update(mpl.rcParamsDefault)
 
 
-def dataframe_from_csv(csv, index_col=None, **kwargs):
+def gamma_factor(v):
+
+    return 1 / (1 - v**2 / sp.constants.c**2)**0.5
+
+
+def dataframe_from_csv(csv, index_col=None, sep=r"\s*,\s*", **kwargs):
     """ Creates Pandas dataframe from comma separated values file, allows # comments and 
     blank lines. """
-    return pd.read_csv(csv, sep=r"\s*,\s*",
+
+    separator = r"\s+" if sep == ' ' else sep
+    return pd.read_csv(csv, sep=separator,
                        engine="python",
                        skip_blank_lines=True,
                        index_col=index_col,
@@ -96,11 +105,18 @@ def f_exp_simple(x, a, b):
     return a * sp.exp(b * x)
 
 
-def f_gaussian(x, mu, sigma):
+def f_gaussian(x, h, mu, sigma, dy):
     """
     Gaussian curve. Intended for ls regression.
     """
-    return sp.exp(-(x - mu)**2 / (2 * sigma**2)) / (sp.sqrt(2 * sp.pi) * sigma)
+    return h * sp.exp(-(x - mu)**2 / (2 * sigma**2)) + dy
+
+
+def f_sin(x, amp, omega, phi, dy):
+    """
+    Sinus curve. Intended for ls regression.
+    """
+    return amp * sp.sin(omega * x + phi) + dy
 
 
 class FitCurve:
@@ -275,3 +291,16 @@ class Spline(_UnivariateSpline):
                 highest = x
 
         return sp.array(new_x), sp.array(new_y)
+
+
+def main():
+
+    df = pd.DataFrame()
+    df["a"] = [1, 2, 3]
+    df["b"] = [5.25785, 4e-7, 18]
+
+    return df
+
+
+if __name__ == '__main__':
+    df = main()
