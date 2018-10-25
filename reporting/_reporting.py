@@ -86,6 +86,14 @@ class Reporting:
     def dump_vars(self):
 
         frameinfo = self._get_script_last_frameinfo()
+        frameinfo_index = inspect.stack().index(frameinfo)
+
+        for fi in inspect.stack()[frameinfo_index:]:
+            if fi.filename == frameinfo.filename and fi.function != "<module>":
+                self._pretty_print_vardump(fi.frame.f_locals,
+                                           f"{fi.function} locals")
+            else:
+                break
 
         script_globals = dict(frameinfo.frame.f_globals)
 
@@ -94,25 +102,24 @@ class Reporting:
 
         for k in list(script_globals.keys()):
             if k in script_globals.keys() and inspect.isfunction(script_globals[k]):
-                print(f"deleting function {k}")
                 del script_globals[k]
             if k in script_globals.keys() and inspect.ismethod(script_globals[k]):
-                print(f"deleting method {k}")
                 del script_globals[k]
 
         self._pretty_print_vardump(script_globals, "globals")
 
     def _pretty_print_vardump(self, var_dict, title=""):
 
-        print(title)
+        print(f"{title}:")
         for k, v in var_dict.items():
             print(f"\t{k}: {v}")
+        if not var_dict:
+            print(f"\tno variables in {title}")
 
     def _get_script_last_frameinfo(self):
 
         stack = inspect.stack()
 
-        script_path = stack[-1].filename
         last_frame_in_script = stack[-1]
 
         for f in stack:
@@ -125,11 +132,11 @@ class Reporting:
                 last_frame_in_script = f
                 break
 
-        print("-----")
-        print("from _get_script_last_frameinfo: ")
-        print("\tscript file:", last_frame_in_script.filename)
-        print("\tcode context:", last_frame_in_script.code_context)
-        print("-----")
+        # print("-----")
+        # print("from _get_script_last_frameinfo: ")
+        # print("\tscript file:", last_frame_in_script.filename)
+        # print("\tcode context:", last_frame_in_script.code_context)
+        # print("-----")
 
         return last_frame_in_script
 
