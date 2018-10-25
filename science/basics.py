@@ -293,6 +293,10 @@ class Spline(_UnivariateSpline):
         return sp.array(new_x), sp.array(new_y)
 
 
+print("Science Basics: using latex matplotlib style")
+use_mpl_latex_style()
+
+
 def main():
 
     df = pd.DataFrame()

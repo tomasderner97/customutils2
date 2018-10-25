@@ -145,7 +145,7 @@ def df_to_booktabs_table(df, column_properties, file=None):
     finished = "\n".join(header + concatenated_rows + footer)
 
     if file:
-        with open(file, "w") as f:
+        with open(file, "w+") as f:
             f.write(finished)
 
     return finished
