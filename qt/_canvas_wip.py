@@ -45,29 +45,93 @@ class Canvas(QWidget):
         self.p.end()
 
 
-class MyCanvas(Canvas):
+class PixmapCanvas(QWidget):
+    """
+    Canvas class for PyQt5. Everything is drawn on QPixmap, meaning the content is stable
+    between updates.
+    """
 
-    def __init__(self):
+    def __init__(self,
+                 width=500,
+                 height=500,
+                 anim_period=-1):
 
-        super().__init__(anim_period=5)
+        super().__init__()
+
+        self.pixmap = QPixmap(width, height)
+        self.setFixedSize(width, height)
+
+        self.anim_period = anim_period
+        self.p = QPainter()
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.timeout)
+
+        if anim_period >= 0:
+            self.timer.start(anim_period)
+
+        self.p.begin(self.pixmap)
+        self.init_func()
+        self.p.end()
+
+    def init_func(self):
+
+        pass
 
     def update_func(self):
 
-        from random import random
+        raise NotImplementedError("This method is abstract, you need to implement it.")
 
-        self.p.drawLine(int(random() * self.width()),
-                        int(random() * self.height()),
-                        int(random() * self.width()),
-                        int(random() * self.height()),)
+    def background_color(self, color_name):
+        """
+        Deletes content of the canvas and sets background color.
+        """
+        activated_here = True
 
+        if self.p.isActive():
+            activated_here = False
+        else:
+            self.p.begin(self.pixmap)
 
-def main():
+        self.p.fillRect(0, 0, self.width(), self.height(), QColor(color_name))
 
-    app = QApplication(sys.argv)
-    mc = MyCanvas()
-    mc.show()
-    sys.exit(app.exec())
+        if activated_here:
+            self.p.end()
 
+    def timeout(self, *args, **kwargs):
+        """
+        Calls the update_func() and passes the args and kwargs.
+        """
+        activated_here = True
 
-if __name__ == '__main__':
-    main()
+        if self.p.isActive():
+            activated_here = False
+        else:
+            self.p.begin(self.pixmap)
+
+        self.update_func(*args, **kwargs)
+        if activated_here:
+            self.p.end()
+        self.update()
+
+    def paintEvent(self, event):
+
+        self.p.begin(self)
+        self.p.drawPixmap(0, 0, self.pixmap)
+        self.p.end()
+
+    def resize(self, *args):
+        """ 
+        Deletes everything on canvas and sets new size.
+        """
+        stopped_here = False
+
+        if self.p.isActive():
+            self.p.end()
+            stopped_here = True
+
+        self.setFixedSize(*args)
+        self.pixmap = QPixmap(self.width(), self.height())
+
+        if stopped_here:
+            self.p.begin(self.pixmap)
