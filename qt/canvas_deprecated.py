@@ -1,10 +1,9 @@
 import sys
-
 from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QPainter, QPen, QBrush, QPixmap, QColor
 
-__version__ = "2.0"
+__version__ = "1.0"
 
 
 class Canvas(QWidget):
@@ -16,32 +15,43 @@ class Canvas(QWidget):
     def __init__(self,
                  width=500,
                  height=500,
+                 update_func=None,
                  anim_period=-1):
+        """
+        Parameters
+        ----------
+        width : int
+            Width of canvas
+        height : int
+            Height of canvas
+        update_func : callable(c: Canvas)
+            Function called on redraw
+        anim_period : int
+            Animation period in ms, default is -1, meaning no automatic periodic redrawing
+        """
 
         super().__init__()
 
         self.setFixedSize(width, height)
+
+        self.update_func = update_func if update_func else lambda widget: None
         self.anim_period = anim_period
         self.p = QPainter()
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.timeout)
-
+        self.timer = None
         if anim_period >= 0:
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.timeout)
             self.timer.start(anim_period)
 
     def timeout(self):
 
         self.update()
 
-    def update_func(self):
-
-        raise NotImplementedError("This method is abstract, you need to implement it.")
-
     def paintEvent(self, event):
 
         self.p.begin(self)
-        self.update_func()
+        self.update_func(self)
         self.p.end()
 
 
@@ -54,33 +64,43 @@ class PixmapCanvas(QWidget):
     def __init__(self,
                  width=500,
                  height=500,
+                 init_func=None,
+                 update_func=None,
                  anim_period=-1):
-
+        """
+        Parameters
+        ----------
+        width : int
+            Width of the canvas
+        height : int
+            Height of the canvas
+        init_func : callable(c: PixmapCanvas)
+            Init function for the canvas, is called once, painter is available (c.p)
+        update_func : callable(c: PixmapCanvas, *args, **kwargs)
+            This is called every time the timeout() method is called. It is called by timer
+            or manually. Painter is available (c.p)
+        anim_period : int
+            animation period in ms, if 0, timer is not initialized
+        """
         super().__init__()
 
         self.pixmap = QPixmap(width, height)
         self.setFixedSize(width, height)
 
+        self.init_func = init_func if init_func else lambda widget: None
+        self.update_func = update_func if update_func else lambda widget: None
         self.anim_period = anim_period
         self.p = QPainter()
 
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.timeout)
-
+        self.timer = None
         if anim_period >= 0:
+            self.timer = QTimer(self)
+            self.timer.timeout.connect(self.timeout)
             self.timer.start(anim_period)
 
         self.p.begin(self.pixmap)
-        self.init_func()
+        self.init_func(self)
         self.p.end()
-
-    def init_func(self):
-
-        pass
-
-    def update_func(self):
-
-        raise NotImplementedError("This method is abstract, you need to implement it.")
 
     def background_color(self, color_name):
         """
@@ -109,7 +129,7 @@ class PixmapCanvas(QWidget):
         else:
             self.p.begin(self.pixmap)
 
-        self.update_func(*args, **kwargs)
+        self.update_func(self, *args, **kwargs)
         if activated_here:
             self.p.end()
         self.update()
@@ -135,3 +155,31 @@ class PixmapCanvas(QWidget):
 
         if stopped_here:
             self.p.begin(self.pixmap)
+
+
+def init(c: PixmapCanvas):
+
+    c.background_color("red")
+    c.counter = 0
+
+
+def update(c: PixmapCanvas):
+
+    print(c.counter)
+    if c.counter == 5:
+        c.resize(600, 600)
+        c.background_color("blue")
+
+    c.counter += 1
+
+
+def main():
+
+    app = QApplication(sys.argv)
+    canv = PixmapCanvas(init_func=init, update_func=update, anim_period=1000)
+    canv.show()
+    sys.exit(app.exec())
+
+
+if __name__ == '__main__':
+    main()
