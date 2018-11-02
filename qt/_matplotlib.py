@@ -1,15 +1,17 @@
 import sys
 import matplotlib
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qt5agg import NavigationToolbar2QT as NavigationToolbar
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
-from PyQt5.QtWidgets import QApplication, QSizePolicy
+from PyQt5.QtWidgets import QApplication, QSizePolicy, QWidget, QVBoxLayout
+from PyQt5.QtCore import QTimer, Qt
 
 matplotlib.use("Qt5Agg")
 
 
-class MatplotlibWidget(FigureCanvas):
+class MatplotlibWidget(QWidget):
 
     def __init__(self,
                  parent=None,
@@ -18,7 +20,18 @@ class MatplotlibWidget(FigureCanvas):
                  width=0,
                  height=0,
                  dpi=0,
-                 tight_layout=False):
+                 tight_layout=False,
+                 toolbar=False):
+
+        super().__init__()
+        self.setParent(parent)
+
+        self._prepare_matplotlib_stuff(fig, ax, width, height, dpi, tight_layout)
+        self._prepare_layout(toolbar)
+
+        self.timer = QTimer(self)
+
+    def _prepare_matplotlib_stuff(self, fig, ax, width, height, dpi, tight_layout):
 
         if not dpi:
             dpi = matplotlib.rcParams["figure.dpi"]
@@ -53,9 +66,23 @@ class MatplotlibWidget(FigureCanvas):
         if tight_layout:
             self._fig.tight_layout()
 
-        FigureCanvas.__init__(self, self._fig)
-        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
-        self.updateGeometry()
+    def _prepare_layout(self, toolbar):
+
+        self._vbox = QVBoxLayout(self)
+        self.setLayout(self._vbox)
+        self.setContentsMargins(0, 0, 0, 0)
+        self._vbox.setContentsMargins(0, 0, 0, 0)
+        self._vbox.setSpacing(0)
+
+        self._figure_canvas = FigureCanvas(self._fig)
+        self._figure_canvas.setParent(self)
+        self._figure_canvas.setSizePolicy(QSizePolicy.Expanding,
+                                          QSizePolicy.Expanding)
+
+        if toolbar:
+            self._vbox.addWidget(NavigationToolbar(self._figure_canvas, self))
+
+        self._vbox.addWidget(self._figure_canvas)
 
     @property
     def ax(self):
@@ -72,19 +99,22 @@ class MatplotlibWidget(FigureCanvas):
 
         return self._fig
 
+    def start_timer(self, period):
 
-def main():
+        self._frame_counter = 0
 
-    fig, axs = plt.subplots(2, 1)
-    axs[0].plot([1, 3, 2])
-    axs[1].plot([2, 1, 3])
+        def anim():
 
-    app = QApplication(sys.argv)
-    mw = MatplotlibWidget(fig=fig, ax=axs, tight_layout=True)
-    mw.ax.plot([3, 2, 1])
-    mw.show()
-    sys.exit(app.exec())
+            self._frame_counter += 1
+            self.timeout(self._frame_counter)
 
+        self.timer.timeout.connect(anim)
+        self.timer.start(period)
 
-if __name__ == '__main__':
-    main()
+    def stop_timer(self):
+
+        self.timer.stop()
+
+    def timeout(self, frame):
+
+        raise NotImplementedError("You need to reimplement this method or connect another function")
