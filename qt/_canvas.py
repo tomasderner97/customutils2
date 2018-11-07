@@ -13,6 +13,7 @@ class Canvas(QWidget):
     """
     Canvas class for PyQt5. Every time it is redrawn, it calls self.redraw.
     Every redraw is complete, pixel values are not remembered between redraws.
+    There is self.frame_counter available that is incremented every timeout.
     """
 
     def __init__(self,
@@ -32,8 +33,11 @@ class Canvas(QWidget):
         if anim_period >= 0:
             self.timer.start(anim_period)
 
+        self.frame_counter = 0
+
     def timeout(self):
 
+        self.frame_counter += 1
         self.update()
 
     def redraw(self):
@@ -51,6 +55,7 @@ class PixmapCanvas(QWidget):
     """
     Canvas class for PyQt5. Everything is drawn on QPixmap, meaning the content is stable
     between updates.
+    There is self.frame_counter available that is incremented every timeout.
     """
 
     def __init__(self,
@@ -75,6 +80,8 @@ class PixmapCanvas(QWidget):
         self.p.begin(self.pixmap)
         self.init()
         self.p.end()
+
+        self.frame_counter = 0
 
     def init(self):
 
@@ -104,6 +111,8 @@ class PixmapCanvas(QWidget):
         """
         Calls the redraw() and passes the args and kwargs.
         """
+        self.frame_counter += 1
+
         activated_here = True
 
         if self.p.isActive():
