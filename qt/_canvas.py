@@ -43,7 +43,7 @@ class Canvas(QWidget):
     def paintEvent(self, event):
 
         self.p.begin(self)
-        self.update_func()
+        self.redraw()
         self.p.end()
 
 
@@ -73,14 +73,14 @@ class PixmapCanvas(QWidget):
             self.timer.start(anim_period)
 
         self.p.begin(self.pixmap)
-        self.init_func()
+        self.init()
         self.p.end()
 
-    def init_func(self):
+    def init(self):
 
         pass
 
-    def update_func(self):
+    def redraw(self):
 
         raise NotImplementedError("This method is abstract, you need to implement it.")
 
@@ -102,7 +102,7 @@ class PixmapCanvas(QWidget):
 
     def timeout(self, *args, **kwargs):
         """
-        Calls the update_func() and passes the args and kwargs.
+        Calls the redraw() and passes the args and kwargs.
         """
         activated_here = True
 
@@ -111,7 +111,7 @@ class PixmapCanvas(QWidget):
         else:
             self.p.begin(self.pixmap)
 
-        self.update_func(*args, **kwargs)
+        self.redraw(*args, **kwargs)
         if activated_here:
             self.p.end()
         self.update()
