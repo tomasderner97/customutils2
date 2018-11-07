@@ -100,6 +100,10 @@ class MatplotlibWidget(QWidget):
         return self._fig
 
     def start_timer(self, period):
+        """
+        Starts self.timer with given period. It calls self.timeout, which must be defined.
+        It passes frame count to timeout. The count can be reset with self.reset_timer.
+        """
 
         self._frame_counter = 0
 
@@ -112,9 +116,22 @@ class MatplotlibWidget(QWidget):
         self.timer.start(period)
 
     def stop_timer(self):
+        """
+        Stops the timer.
+        """
 
         self.timer.stop()
 
+    def reset_timer(self):
+        """
+        Sets frame counter to zero (-1, the variable is incremented once before next timeout).
+        """
+
+        self._frame_counter = -1
+
     def timeout(self, frame):
+        """
+        Callback method for self.timer. Is abstract, gets frame count.
+        """
 
         raise NotImplementedError("You need to reimplement this method or connect another function")
