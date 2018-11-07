@@ -4,13 +4,14 @@ from PyQt5.QtWidgets import QWidget, QApplication
 from PyQt5.QtCore import QTimer, Qt
 from PyQt5.QtGui import QPainter, QPen, QBrush, QPixmap, QColor
 
-__version__ = "2.0"
-# last version was moved to _deprecated
+__version__ = "2.1"
+# 1.0 was moved to _deprecated
+# change in 2.1, renamed update_func to redraw
 
 
 class Canvas(QWidget):
     """
-    Canvas class for PyQt5. Every time it is redrawn, it calls update_func.
+    Canvas class for PyQt5. Every time it is redrawn, it calls self.redraw.
     Every redraw is complete, pixel values are not remembered between redraws.
     """
 
@@ -35,7 +36,7 @@ class Canvas(QWidget):
 
         self.update()
 
-    def update_func(self):
+    def redraw(self):
 
         raise NotImplementedError("This method is abstract, you need to implement it.")
 
