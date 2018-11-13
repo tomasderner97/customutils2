@@ -1,4 +1,4 @@
-from math import acos
+from math import acos, degrees
 
 
 class Vector2D:
@@ -7,6 +7,8 @@ class Vector2D:
 
         self._x = x
         self._y = y
+
+        self._abs = None
 
     @property
     def x(self):
@@ -31,9 +33,25 @@ class Vector2D:
 
         return Vector2D(self.y, -self.x)
 
-    def angle(self, second):
+    def angle(self, second=None, deg=False):
+        """
+        Returns the angle between self and second vector. If no second vector is passed, 
+        returns its angle from horizontal. If deg is True, retruns degrees, default is radians
+        """
 
-        return acos(self @ second / (abs(self) * abs(second)))
+        if not second:
+            second = Vector2D(1, 0)
+
+        angle_radians = acos(self @ second / (abs(self) * abs(second)))
+
+        if deg:
+            return degrees(angle_radians)
+        else:
+            return angle_radians
+
+    def get(self):
+
+        return self.x, self.y
 
     def __add__(self, second):
 
@@ -60,8 +78,12 @@ class Vector2D:
         return Vector2D(-self.x, -self.y)
 
     def __abs__(self):
+        """ Returns the absolute value of the vector, meaning euclidean norm. Is lazy. """
 
-        return (self.x**2 + self.y**2)**0.5
+        if self._abs is None:
+            self._abs = (self.x**2 + self.y**2)**0.5
+
+        return self._abs
 
     def __eq__(self, second):
 

@@ -1,5 +1,8 @@
 def parse_column_property(cp):
 
+    if isinstance(cp, str):
+        cp = cp.split()
+
     col_name = cp[0]
     if len(cp) >= 2:
         quantity_name = cp[1]
@@ -120,7 +123,6 @@ def df_to_booktabs_table(df, column_properties, file=None):
             float_format=float_format
         ).split("\n")
 
-        unit = f"[{unit}]"
         if s_column:
             quantity_name = f"{{{quantity_name}}}"
             unit = f"{{{unit}}}"
@@ -145,7 +147,7 @@ def df_to_booktabs_table(df, column_properties, file=None):
     finished = "\n".join(header + concatenated_rows + footer)
 
     if file:
-        with open(file, "w+") as f:
+        with open(file, "w+", encoding="utf-8") as f:
             f.write(finished)
 
     return finished

@@ -14,17 +14,20 @@ class Canvas(QWidget):
     Canvas class for PyQt5. Every time it is redrawn, it calls self.redraw.
     Every redraw is complete, pixel values are not remembered between redraws.
     There is self.frame_counter available that is incremented every timeout.
+    self.is_timeout is only true for first redraw and redraws caused by self.timeout()
     """
 
     def __init__(self,
                  width=500,
                  height=500,
-                 anim_period=-1):
+                 anim_period=-1,
+                 antialiasing=True):
 
         super().__init__()
 
         self.setFixedSize(width, height)
         self.anim_period = anim_period
+        self.antialiasing = antialiasing
         self.p = QPainter()
 
         self.timer = QTimer(self)
@@ -34,10 +37,12 @@ class Canvas(QWidget):
             self.timer.start(anim_period)
 
         self.frame_counter = 0
+        self.is_timeout = True
 
     def timeout(self):
 
         self.frame_counter += 1
+        self.is_timeout = True
         self.update()
 
     def redraw(self):
@@ -47,8 +52,11 @@ class Canvas(QWidget):
     def paintEvent(self, event):
 
         self.p.begin(self)
+        if self.antialiasing:
+            self.p.setRenderHint(QPainter.Antialiasing)
         self.redraw()
         self.p.end()
+        self.is_timeout = False
 
 
 class PixmapCanvas(QWidget):

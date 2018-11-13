@@ -6,21 +6,28 @@ import warnings
 
 from custom_utils.science._df_to_table import df_to_booktabs_table
 
-__version__ = "1.0"
+__version__ = "2.0"
+
+_MATPLOTLIB_LATEX_STYLE_PATH =\
+    "C:/Users/tomas/AppData/Roaming/Python/Python36/site-packages/custom_utils/science/latex_style.mplstyle"
 
 
 def use_mpl_latex_style():
     """ Changes rcParams to use latex in plots, also changes size to one good for protocols. """
-    # 6 is the widest possible for latex protokol class, 3.75 is arbitrary
-    plt.rcParams["figure.figsize"] = (6, 3.75)
-    plt.rcParams["figure.dpi"] = 100
-    plt.rcParams["text.usetex"] = True
-    plt.rcParams['text.latex.unicode'] = True
-    plt.rcParams["font.family"] = "serif"
-    plt.rcParams["font.serif"] = ["Computer Modern"]
-    plt.rcParams["text.latex.preamble"] = r"""
-    \usepackage[decimalsymbol=comma]{siunitx}
+
+    print("Science Basics: using latex matplotlib style")
+    plt.style.use(_MATPLOTLIB_LATEX_STYLE_PATH)
+
+
+def latex_style():
+    """ Used as context.
+    Usage
+    -----
+    with latex_style():
+        plt...
     """
+
+    return plt.style.context((_MATPLOTLIB_LATEX_STYLE_PATH))
 
 
 def use_mpl_default_style():
@@ -291,10 +298,6 @@ class Spline(_UnivariateSpline):
                 highest = x
 
         return sp.array(new_x), sp.array(new_y)
-
-
-print("Science Basics: using latex matplotlib style")
-use_mpl_latex_style()
 
 
 def main():

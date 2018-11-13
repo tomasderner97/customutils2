@@ -1,0 +1,8 @@
+# 6 is the widest possible for latex protokol class, 3.75 is arbitrary
+figure.figsize: 6, 3.75 
+figure.dpi: 100
+text.usetex: True
+text.latex.unicode: True
+font.family: serif
+font.serif: Computer Modern
+text.latex.preamble: \usepackage[decimalsymbol=comma]{siunitx}
