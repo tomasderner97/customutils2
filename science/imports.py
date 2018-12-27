@@ -1,5 +1,6 @@
+import numpy as np
 import scipy as sp
-from scipy import array as arr
+from numpy import array as arr
 import scipy.constants
 
 from uncertainties import ufloat as uf

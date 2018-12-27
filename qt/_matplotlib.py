@@ -13,6 +13,37 @@ matplotlib.use("Qt5Agg")
 
 class MatplotlibWidget(QWidget):
 
+    """
+    QWidget wrapping a matplotlib figure. It has a timer, controlled by self.start_timer() and
+    self.stop_timer(). It calls the self.timeout(frame: int) function. When self.timeout(frame) 
+    is called for the first time, frame has a value 1, frame 0 should be called manually from the
+    constructor (see usage). 
+
+    Figure is exposed as self.fig, self.ax. Main Axes is in self.ax, all axes are in self.axs.
+
+    Parameters
+    ----------
+    parent : QWidget, default None
+        Qt parent of this widget
+    fig : Figure, default None
+        Figure to show
+    ax : Axes, default None
+        Axes belonging to fig
+    width, height : int, default is figsize in rcParams or size of fig
+        Width and height of the widget (in pixels)
+    dpi : int, default is value in rcParams
+        Dots per inch of the figure
+    tight_layout : bool, default False
+        if true, call self.fig.tight_layout()
+    toolbar : bool, default False
+        if true, show matplotlib toolbar
+
+    Usage
+    -----
+
+    # TODO
+    """
+
     def __init__(self,
                  parent=None,
                  fig=None,

@@ -21,7 +21,8 @@ class Canvas(QWidget):
                  width=500,
                  height=500,
                  anim_period=-1,
-                 antialiasing=True):
+                 antialiasing=True,
+                 precise_timer=True):
 
         super().__init__()
 
@@ -31,6 +32,8 @@ class Canvas(QWidget):
         self.p = QPainter()
 
         self.timer = QTimer(self)
+        if precise_timer:
+            self.timer.setTimerType(Qt.PreciseTimer)
         self.timer.timeout.connect(self.timeout)
 
         if anim_period >= 0:
@@ -57,6 +60,22 @@ class Canvas(QWidget):
         self.redraw()
         self.p.end()
         self.is_timeout = False
+
+    def keyPressEvent(self, e):
+
+        if e.key() == Qt.Key_Space:
+            if self.timer.isActive():
+                self.timer.stop()
+            else:
+                if self.anim_period >= 0:
+                    self.timer.start(self.anim_period)
+
+        if e.key() == Qt.Key_S:
+            if not self.timer.isActive():
+                self.timeout()
+
+        if e.key() == Qt.Key_Escape:
+            sys.exit()
 
 
 class PixmapCanvas(QWidget):
