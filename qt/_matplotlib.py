@@ -64,9 +64,6 @@ class MatplotlibWidget(QWidget):
 
     def _prepare_matplotlib_stuff(self, fig, ax, width, height, dpi, tight_layout):
 
-        if not dpi:
-            dpi = matplotlib.rcParams["figure.dpi"]
-
         if fig:
             self._fig = fig
 
@@ -82,20 +79,23 @@ class MatplotlibWidget(QWidget):
                 self._axs = [ax]
 
         else:
+            if not dpi:
+                dpi = matplotlib.rcParams["figure.dpi"]
+
             self._fig = Figure(figsize=matplotlib.rcParams["figure.figsize"], dpi=dpi)
             self._ax = self._fig.add_subplot(111)
             self._axs = [self._ax]
 
-        if not width:
-            width = matplotlib.rcParams["figure.figsize"][0] * dpi
-        if not height:
-            height = matplotlib.rcParams["figure.figsize"][1] * dpi
+            if not width:
+                width = matplotlib.rcParams["figure.figsize"][0] * dpi
+            if not height:
+                height = matplotlib.rcParams["figure.figsize"][1] * dpi
 
-        if width or height:
-            self._fig.set_size_inches(width / dpi, height / dpi)
+            if width or height:
+                self._fig.set_size_inches(width / dpi, height / dpi)
 
-        if tight_layout:
-            self._fig.tight_layout()
+            if tight_layout:
+                self._fig.tight_layout()
 
     def _prepare_layout(self, toolbar):
 

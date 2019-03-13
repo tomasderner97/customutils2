@@ -1,4 +1,4 @@
-from math import acos, degrees
+from math import acos, degrees, sin, cos, radians
 
 
 class Vector2D:
