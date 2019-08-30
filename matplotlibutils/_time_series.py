@@ -1,8 +1,16 @@
+from itertools import count
+from random import random
+from time import time
+
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+from PyQt5.QtCore import QTimer, Qt
+from matplotlib import animation
 from matplotlib.ticker import AutoLocator
 import scipy as sp
 from sys import float_info
+
+from qt import MatplotlibWidget, qt_app
 
 
 class TimeSeries:
@@ -13,7 +21,8 @@ class TimeSeries:
                  xlabel="",
                  ylabel="",
                  rescale_to=1 / 0.8,
-                 lazy_threshold=False,
+                 lazy_threshold=None,
+                 lazy_time_threshold=None,
                  axes=None):
         """
          This class represents a plot of time series data. The t axis grows with growing data set,
@@ -34,9 +43,13 @@ class TimeSeries:
          rescale_to : float > 1
              When data line runs out of space, the x (t) axes rescales to 
              (the space needed to fit the data) * rescale_to
-         lazy_threshold : bool or int
+         lazy_threshold : None or int
              If true, add_point(t, y) doesn't call add_points([t], [y]) but stores the passed values
              in lists. When the lists are lazy_threshold long, add_points is called with the lists
+         lazy_time_threshold : None or int
+             If true, add_point(t, y) doesn't call add_points([t], [y]) but stores the passed values
+             in lists. Time of last drawing is saved, when the time from last drawing is greater than
+             lazy_time_threshold, it draws the points
          axes : matplotlib.axes.Axes
              Axes to draw on. Exclusive with width and height. Passing axes implies usage of more 
              than one axes in figure.
@@ -57,8 +70,10 @@ class TimeSeries:
         self.rescale_to = rescale_to
 
         self.lazy_threshold = lazy_threshold
+        self.lazy_time_threshold = lazy_time_threshold
         self._lazy_tlist = []
         self._lazy_ylist = []
+        self.time_of_last_drawing = time()
 
         self.last_t = -sp.inf
         self.left_tlim = None
@@ -112,10 +127,21 @@ class TimeSeries:
             self._lazy_ylist.append(y)
 
             if len(self._lazy_tlist) >= self.lazy_threshold:
-
                 self.add_points(self._lazy_tlist, self._lazy_ylist)
                 self._lazy_tlist = []
                 self._lazy_ylist = []
+
+        if self.lazy_time_threshold:
+
+            self._lazy_tlist.append(t)
+            self._lazy_ylist.append(y)
+
+            now = time()
+            if now - self.time_of_last_drawing >= self.lazy_time_threshold:
+                self.add_points(self._lazy_tlist, self._lazy_ylist)
+                self._lazy_tlist = []
+                self._lazy_ylist = []
+                self.time_of_last_drawing = now
 
         else:
 
@@ -170,7 +196,6 @@ class TimeSeries:
 
             # ----- X scaling ----- #
             if self.last_t > self.right_tlim:
-
                 times_span = self.last_t - self.left_tlim
                 new_tspan = times_span * self.rescale_to
                 self.right_tlim = self.left_tlim + new_tspan
@@ -188,3 +213,33 @@ class TimeSeries:
                 self.ax.set_ylim(bottom=self.min_y)
 
         self.fig.canvas.draw()
+
+
+def main():
+
+    class App(MatplotlibWidget):
+        def __init__(self):
+            self.ts = TimeSeries(lazy_time_threshold=1)
+
+            super().__init__(self.ts.fig, toolbar="up")
+
+            self.walk = 0
+            self.counter = count()
+
+            self.timer = QTimer()
+            self.timer.timeout.connect(self.anim)
+            self.timer.start(0)
+
+            self.time_taken = 0
+
+        def anim(self):
+            then = time()
+            self.ts.add_point(next(self.counter), self.time_taken)
+            now = time()
+            self.time_taken = now - then
+
+    qt_app(App())
+
+
+if __name__ == '__main__':
+    main()

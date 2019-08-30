@@ -1,6 +1,6 @@
 from PyQt5.QtCore import QRectF, QPointF
 from PyQt5.QtGui import QPolygonF
-from math import sqrt
+from mathutils import sqrt
 from numpy import sign
 
 
